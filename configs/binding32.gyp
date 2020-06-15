@@ -193,6 +193,8 @@
         './common/node_event.cpp',
         './common/node_process.h',
         './common/node_error.h',
+        './common/loguru.hpp',
+        './common/loguru.cpp',
         './agora_node_ext/agora_node_ext.cpp',
         './agora_node_ext/agora_node_ext.h',
         './agora_node_ext/agora_rtc_engine.cpp',
@@ -215,6 +217,12 @@
         './agora_node_ext/AVPlugin/IAVFramePlugin.h',
         './agora_node_ext/AVPlugin/IAVFramePluginManager.h',
         './agora_node_ext/AVPlugin/IAVFramePluginManager.cpp',
+        './agora_node_ext/agora_media_player.h',
+        './agora_node_ext/agora_media_player.cpp',
+        './agora_node_ext/node_media_player_observer.h',
+        './agora_node_ext/node_media_player_observer.cpp',
+        './agora_node_ext/node_media_player_video_frame_observer.h',
+        './agora_node_ext/node_media_player_video_frame_observer.cpp',
         './common/libyuv/source/compare_common.cc',
         './common/libyuv/source/compare.cc',
         './common/libyuv/source/convert_argb.cc',
@@ -248,18 +256,21 @@
                     'destination': '<(PRODUCT_DIR)',
                     'files': [
                         './sdk/dll/agora_rtc_sdk.dll',
-                        './sdk/dll/agora_sig_sdk.dll'
+                        './sdk/dll/agora_sig_sdk.dll',
+                        './sdk/media_player/win/dll/AgoraMediaPlayer.dll'
                     ]
                 }],
                 'library_dirs': [
                     './sdk/lib/win',
+                    './sdk/media_player/win/lib'
                 ],
                 'link_settings': {
                     'libraries': [
                         '-lagora_rtc_sdk.lib',
                         '-lws2_32.lib',
                         '-lRpcrt4.lib',
-						'-lgdiplus.lib'
+						'-lgdiplus.lib',
+                        '-lAgoraMediaPlayer.lib'
                     ]
                 },
                 'defines!': [
@@ -278,7 +289,8 @@
                 ],
                 'include_dirs': [
                 './sdk/include',
-                './extra/internal'
+                './extra/internal',
+                './sdk/media_player/win/include'
                 ],
                 'configurations': {
                     'Release': {
