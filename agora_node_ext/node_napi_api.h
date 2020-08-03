@@ -21,8 +21,6 @@
 #include <mutex>
 #include <atomic>
 #include <thread>
-#include <IAgoraRtcEngine.h>
-#include <IAgoraMediaEngine.h>
 #include <memory>
 #include <nan.h>
 using Nan::Persistent;
@@ -70,7 +68,6 @@ struct buffer_info {
 
 using buffer_list = std::array<buffer_info, 4>;
 using stream_buffer_type = std::vector<unsigned char>;
-using agora::media::IVideoFrame;
 
 enum NodeRenderType
 {
@@ -81,114 +78,6 @@ enum NodeRenderType
 };
 
 #define MAX_MISS_COUNT 500
-
-class VideoFrameInfo
-{
-public:
-    NodeRenderType m_renderType;
-    agora::rtc::uid_t m_uid;
-    buffer_list m_bufferList;
-    stream_buffer_type m_buffer;
-    uint32_t m_destWidth;
-    uint32_t m_destHeight;
-    bool m_needUpdate;
-    uint32_t m_count;
-    std::string m_channelId;
-    VideoFrameInfo()
-        : m_renderType(NODE_RENDER_TYPE_REMOTE)
-        , m_uid(0)
-        , m_destWidth(0)
-        , m_destHeight(0)
-        , m_needUpdate(false)
-        , m_count(0)
-        , m_channelId("")
-    {}
-    VideoFrameInfo(NodeRenderType type)
-        : m_renderType(type)
-        , m_uid(0)
-        , m_destWidth(0)
-        , m_destHeight(0)
-        , m_needUpdate(false)
-        , m_count(0)
-        , m_channelId("")
-    {
-    }
-    VideoFrameInfo(NodeRenderType type, agora::rtc::uid_t uid, std::string channelId)
-        : m_renderType(type)
-        , m_uid(uid)
-        , m_destWidth(0)
-        , m_destHeight(0)
-        , m_needUpdate(false)
-        , m_count(0)
-        , m_channelId(channelId)
-    {}
-};
-
-class NodeVideoFrameTransporter {
-    public:
-    NodeVideoFrameTransporter();
-    ~NodeVideoFrameTransporter();
-    
-    bool initialize(Isolate *isolate, const Nan::FunctionCallbackInfo<Value>& callbackinfo);
-    int deliverFrame_I420(NodeRenderType type, agora::rtc::uid_t uid, std::string channelId, const IVideoFrame& videoFrame, int rotation, bool mirrored);
-    int deliverVideoSourceFrame(const char* payload, int len);
-    int setVideoDimension(NodeRenderType, agora::rtc::uid_t uid, std::string channelId, uint32_t width, uint32_t height);
-    void addToHighVideo(agora::rtc::uid_t uid, std::string channelId);
-    void removeFromeHighVideo(agora::rtc::uid_t uid, std::string channelId);
-    void setHighFPS(uint32_t fps);
-    void setFPS(uint32_t fps);
-    //bool deliveryFrame1(enum NodeRenderType type, agora::rtc::uid_t uid, const buffer_list& buffers);
-private:
-
-    struct image_frame_info {
-        int stride;
-        int stride0;
-        int width;
-        int height;
-        int strideU;
-        int strideV;
-    };
-
-    struct image_header_type {
-        uint8_t format;
-        uint8_t mirrored;
-        uint16_t width;
-        uint16_t height;
-        uint16_t left;
-        uint16_t top;
-        uint16_t right;
-        uint16_t bottom;
-        uint16_t rotation;
-        uint32_t timestamp;
-    };
-    VideoFrameInfo& getVideoFrameInfo(NodeRenderType type, agora::rtc::uid_t uid, std::string channelId);
-    bool deinitialize();
-    VideoFrameInfo& getHighVideoFrameInfo(agora::rtc::uid_t uid, std::string channelId);
-    void setupFrameHeader(image_header_type*header, int stride, int width, int height);
-    void copyFrame(const agora::media::IVideoFrame& videoFrame, VideoFrameInfo& info, int dest_stride, int src_stride, int width, int height);
-    void copyAndCentreYuv(const unsigned char* srcYPlane, const unsigned char* srcUPlane, const unsigned char* srcVPlane, int width, int height, int srcStride,
-    unsigned char* dstYPlane, unsigned char* dstUPlane, unsigned char* dstVPlane, int dstStride);
-    void FlushVideo();
-    void highFlushVideo();
-private:
-    bool init;
-    Isolate* env;
-    Persistent<Function> callback;
-    Persistent<Object> js_this;
-    std::unordered_map<std::string, std::unordered_map<agora::rtc::uid_t, VideoFrameInfo>> m_remoteVideoFrames;
-    std::unordered_map<std::string, std::unordered_map<agora::rtc::uid_t, VideoFrameInfo>> m_remoteHighVideoFrames;
-    std::unique_ptr<VideoFrameInfo> m_localVideoFrame;
-    std::unique_ptr<VideoFrameInfo> m_devTestVideoFrame;
-    std::unique_ptr<VideoFrameInfo> m_videoSourceVideoFrame;
-    std::mutex m_lock;
-    int m_stopFlag;
-    std::unique_ptr<std::thread> m_thread;
-    std::unique_ptr<std::thread> m_highThread;
-    uint32_t m_highFPS;
-    uint32_t m_FPS;
-};
-
-NodeVideoFrameTransporter* getNodeVideoFrameTransporter();
 
 /**
  * NodeString is used to translate string from V8 value and vice versa in the same way as primitive types.
@@ -266,8 +155,6 @@ private:
  */
 int napi_get_value_string_utf8_(const Local<Value>& str, char *buffer, uint32_t len);
 
-napi_status napi_get_value_uid_t_(const Local<Value>& value, agora::rtc::uid_t& result);
-
 /**
  * get uint32 from V8 value.
  */
@@ -340,11 +227,6 @@ Local<Value> napi_create_int32_(Isolate *isolate, const int32_t& value);
 Local<Value> napi_create_uint16_(Isolate *isolate, const uint16_t& value);
 
 /**
- * Create V8 value from uid
- */
-Local<Value> napi_create_uid_(Isolate *isolate, const agora::rtc::uid_t& uid);
-
-/**
 * get uint32 property from V8 object.
 */
 napi_status napi_get_object_property_uint32_(Isolate* isolate, const Local<Object>& obj, const std::string& propName, uint32_t& result);
@@ -374,11 +256,6 @@ napi_status napi_get_object_property_int64_(Isolate* isolate, const Local<Object
 * get nodestring property from V8 object.
 */
 napi_status napi_get_object_property_nodestring_(Isolate* isolate, const Local<Object>& obj, const std::string& propName, NodeString& nodechar);
-
-/**
-* get nodestring property from V8 object.
-*/
-napi_status napi_get_object_property_uid_(Isolate* isolate, const Local<Object>& obj, const std::string& propName, agora::rtc::uid_t& uid);
 
 
 const char* nullable( char const* s);
