@@ -4,7 +4,7 @@
     },
     'targets': [
     {
-        'target_name': 'agora_node_ext',
+        'target_name': 'agora_mediaplayer_node_ext',
         'include_dirs': [
         './common',
         "<!(node -e \"require('nan')\")"

@@ -3,8 +3,7 @@ const shell = require("shelljs");
 const path = require('path')
 
 const gyp_exec = `node ${path.resolve(__dirname, '../node_modules/node-gyp/bin/node-gyp.js')}`
-const agora_node_ext_path = `${path.resolve(__dirname, '../build/Release/agora_node_ext.node')}`
-const video_source_path = `${path.resolve(__dirname, '../build/Release/VideoSource')}`
+const agora_node_ext_path = `${path.resolve(__dirname, '../build/Release/agora_mediaplayer_node_ext.node')}`
 
 module.exports = ({
   electronVersion='5.0.8',
@@ -49,7 +48,7 @@ module.exports = ({
   logger.info("Electron Version:", electronVersion);
   logger.info("Runtime:", runtime, "\n");
 
-  logger.info("Build C++ addon for Agora Electron SDK...\n")
+  logger.info("Build C++ addon for Agora MediaPlayer Electron SDK...\n")
   
   shell.exec(`${gyp_exec} clean`, {silent}, (code, stdout, stderr) => {
     // handle error

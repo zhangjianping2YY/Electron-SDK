@@ -17,7 +17,7 @@ import { deprecate, config, Config } from '../Utils';
 
 import { fileURLToPath } from 'url';
 import Renderer from 'ts/Renderer/SoftwareRenderer';
-const agora = require('../../build/Release/agora_node_ext');
+const agora = require('../../build/Release/agora_mediaplayer_node_ext');
 
 
 class AgoraMediaPlayer extends EventEmitter
