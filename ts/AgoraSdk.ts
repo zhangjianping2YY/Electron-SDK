@@ -1,2 +1,2 @@
-import AgoraRtcEngine from './Api';
-export default AgoraRtcEngine;
+import AgoraMediaPlayer from './Api';
+export default AgoraMediaPlayer;
